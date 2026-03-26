@@ -14,6 +14,16 @@ load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 st.set_page_config(page_title="Astral SRE", page_icon="✨", layout="wide", initial_sidebar_state="collapsed")
+# --- UI TWEAKS: HIDE STREAMLIT BRANDING & MENUS ---
+hide_streamlit_style = """
+<style>
+#MainMenu {visibility: hidden;} /* Hides the hamburger menu */
+header {visibility: hidden;} /* Hides the top header bar and Deploy button */
+footer {visibility: hidden;} /* Hides the 'Made with Streamlit' footer */
+.stDeployButton {display:none;} /* Extra rule to guarantee Deploy button is gone */
+</style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # ... (Keep the rest of your app.py code exactly the same!) ...
 
