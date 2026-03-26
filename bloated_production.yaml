@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-gateway-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment-gateway
+  template:
+    metadata:
+      labels:
+        app: payment-gateway
+    spec:
+      containers:
+      - name: payment-gateway
+        image: nginx # We will use standard nginx for a guaranteed smooth K8s pull
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            memory: "4Gi" # THE TRAP: 4 Gigabytes of RAM
+          requests:
+            memory: "256Mi"

@@ -1,0 +1,9 @@
+# Security
+.env
+
+# Python Caches
+__pycache__/
+*.pyc
+
+# Local testing files you don't want public
+my_telemetry.json
