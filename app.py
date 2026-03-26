@@ -174,17 +174,21 @@ if st.session_state.scan_complete:
     
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
-        if st.button("✅ Authenticate & Inject Code", use_container_width=True):
-            
-            # --- HACKATHON DEMO OVERRIDE: Perfect visual filename ---
-            filename = "remediation_payment-gateway.yaml"
-            
-            with open(filename, "w") as yaml_file:
-                yaml_file.write(fix_code)
-                
-            st.success(f"Patch injected! Container downsized safely. You recovered ${annual_saved:,.2f} annually.")
-            st.info(f"💾 SUCCESS: Infrastructure-as-Code file `{filename}` has been physically written to your folder!")
-            st.balloons()
+        # --- CLOUD UPGRADE: Use Streamlit's native Download Button ---
+        filename = "remediation_payment-gateway.yaml"
+        
+        st.download_button(
+            label="⬇️ Authenticate & Download Patch",
+            data=fix_code,
+            file_name=filename,
+            mime="text/yaml",
+            use_container_width=True
+        )
+        
+        # --- NEW: QUICK EXECUTION GUIDE ---
+        st.markdown("### 🏃‍♂️ Next Steps: Apply to Local Cluster")
+        st.info("Open your terminal where this file was downloaded and run:")
+        st.code(f"kubectl apply -f {filename}\nkubectl get pods -w", language="bash")
             
     with col_btn2:
         if st.button("❌ Quarantine Recommendation", use_container_width=True):
