@@ -7,25 +7,10 @@ from groq import Groq
 from agent_tools import calculate_financial_impact, generate_k8s_yaml
 
 # --- 1. SETUP & SECURITY ---
-# Load the secret variables from the .env file
 load_dotenv()
-
-# Initialize Groq client using the hidden environment variable
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 st.set_page_config(page_title="Astral SRE", page_icon="✨", layout="wide", initial_sidebar_state="collapsed")
-# --- UI TWEAKS: HIDE STREAMLIT BRANDING & MENUS ---
-hide_streamlit_style = """
-<style>
-#MainMenu {visibility: hidden;} /* Hides the hamburger menu */
-header {visibility: hidden;} /* Hides the top header bar and Deploy button */
-footer {visibility: hidden;} /* Hides the 'Made with Streamlit' footer */
-.stDeployButton {display:none;} /* Extra rule to guarantee Deploy button is gone */
-</style>
-"""
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
-# ... (Keep the rest of your app.py code exactly the same!) ...
 
 # --- INITIALIZE AI MEMORY (SESSION STATE) ---
 if "scan_complete" not in st.session_state:
@@ -33,17 +18,22 @@ if "scan_complete" not in st.session_state:
 if "ai_data" not in st.session_state:
     st.session_state.ai_data = {}
 
-# --- CUSTOM CSS ---
-st.markdown("""
-    <style>
-    .stApp { background-color: #0b0f19; color: #e6edf3; font-family: 'Courier New', Courier, monospace; }
-    .stButton>button { border: 1px solid #79c0ff; background-color: #1f6feb; color: #ffffff; font-weight: bold; transition: all 0.3s ease-in-out; }
-    .stButton>button:hover { background-color: #388bfd; box-shadow: 0 0 15px #388bfd; }
-    [data-testid="stMetricValue"] { color: #79c0ff; font-family: 'Courier New', monospace; }
-    .terminal-box { background-color: #010409; border: 1px solid #30363d; border-radius: 5px; padding: 15px; color: #79c0ff; font-family: monospace; height: 200px; overflow-y: auto; }
-    .streamlit-expanderHeader { font-weight: bold; color: #58a6ff; }
-    </style>
-""", unsafe_allow_html=True)
+# --- CUSTOM CSS & HIDE STREAMLIT BRANDING ---
+hide_streamlit_style = """
+<style>
+#MainMenu {visibility: hidden;} 
+header {visibility: hidden;} 
+footer {visibility: hidden;} 
+.stDeployButton {display:none;} 
+.stApp { background-color: #0b0f19; color: #e6edf3; font-family: 'Courier New', Courier, monospace; }
+.stButton>button { border: 1px solid #79c0ff; background-color: #1f6feb; color: #ffffff; font-weight: bold; transition: all 0.3s ease-in-out; }
+.stButton>button:hover { background-color: #388bfd; box-shadow: 0 0 15px #388bfd; }
+[data-testid="stMetricValue"] { color: #79c0ff; font-family: 'Courier New', monospace; }
+.terminal-box { background-color: #010409; border: 1px solid #30363d; border-radius: 5px; padding: 15px; color: #79c0ff; font-family: monospace; height: 200px; overflow-y: auto; }
+.streamlit-expanderHeader { font-weight: bold; color: #58a6ff; }
+</style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # --- HEADER ---
 col_logo, col_title = st.columns([1, 8])
@@ -54,6 +44,11 @@ with col_title:
     st.markdown("`[Engine: Kubernetes / Docker Daemon] | [Architecture: Containerized Microservices] | Status: Online`")
 
 st.divider()
+
+# --- ONBOARDING & PREREQUISITES ---
+with st.expander("ℹ️ Welcome to Astral (Read First)", expanded=True):
+    st.write("**Astral** is an autonomous AI Site Reliability Engineer (SRE). It scans Kubernetes clusters, finds containers hoarding unused RAM, calculates the enterprise financial leakage, and writes the GitOps code to fix it.")
+    st.warning("⚙️ **System Requirements:** To scan your own machine, you must have **Docker and Kubernetes** running locally. If you don't have them, just click 'INITIATE' below to test the AI on our simulated enterprise mock data!")
 
 # --- PRE-SCAN INTERACTIVE TOPOLOGY MAP ---
 st.subheader("🕸️ Live Cluster Topology")
@@ -71,9 +66,30 @@ with rack4:
 
 st.write("") 
 
-# --- THE ENTERPRISE DROPZONE ---
+# --- THE ENTERPRISE DROPZONE & AGENT DOWNLOAD ---
 st.markdown("### 📥 Telemetry Ingestion")
-uploaded_file = st.file_uploader("Upload external cluster telemetry (JSON) or leave blank to use the internal live demo data:", type=["json"])
+
+with st.expander("🛠️ Download Local Extraction Agent", expanded=False):
+    st.markdown("Want to test Astral on your own local cluster? Download our secure extraction agent. It runs strictly offline and generates a telemetry file without giving us access to your system.")
+    
+    # Try to read the actual agent file if it exists, otherwise provide a fallback code block
+    try:
+        with open("astral_agent.py", "r") as agent_file:
+            agent_script = agent_file.read()
+    except FileNotFoundError:
+        agent_script = "# astral_agent.py\nprint('Agent file not found locally, please check GitHub repo.')"
+
+    st.download_button(
+        label="⬇️ Download astral_agent.py",
+        data=agent_script,
+        file_name="astral_agent.py",
+        mime="text/x-python",
+        use_container_width=True
+    )
+    
+    st.info("💻 **Instructions:** Open your terminal, navigate to where you downloaded this file, and run `python astral_agent.py`. Then, drag the generated JSON file into the box below!")
+
+uploaded_file = st.file_uploader("Upload 'telemetry_snapshot.json' or leave blank for demo mode:", type=["json"])
 
 # --- THE AGENT TRIGGER ---
 if st.button("🚀 INITIATE ASTRAL ROOT-CAUSE ANALYSIS", use_container_width=True):
@@ -96,18 +112,21 @@ if st.button("🚀 INITIATE ASTRAL ROOT-CAUSE ANALYSIS", use_container_width=Tru
         data = json.load(uploaded_file)
         log_text += "> 📥 External telemetry file detected and ingested successfully.\n"
     else:
-        with open("telemetry_snapshot.json", "r") as f:
-            data = json.load(f)
-        log_text += "> 📡 Defaulting to internal cluster diagnostic payload...\n"
+        try:
+            with open("telemetry_snapshot.json", "r") as f:
+                data = json.load(f)
+            log_text += "> 📡 Defaulting to internal cluster diagnostic payload...\n"
+        except FileNotFoundError:
+            st.error("❌ Error: 'telemetry_snapshot.json' not found. Please upload a file or run the local agent.")
+            st.stop()
         
     log_output.markdown(f'<div class="terminal-box">{log_text}</div>', unsafe_allow_html=True)
 
-    # --- SAFE DATA EXTRACTION ---
-# Check if the uploaded JSON has pricing info. If not, fallback to a standard AWS/GCP default rate.
+    # --- SAFE DATA EXTRACTION (Pricing Bug Fix) ---
     if "pricing_model" in data and "memory_per_gb_hour" in data["pricing_model"]:
         cost_per_hour = data["pricing_model"]["memory_per_gb_hour"]
     else:
-        cost_per_hour = 0.043  # Default industry standard rate if missing
+        cost_per_hour = 0.043  # Default AWS/GCP rate
 
     prompt = f"""
     You are Astral, an autonomous FinOps Agent analyzing Kubernetes containers. Review this JSON telemetry: {json.dumps(data)}
@@ -132,7 +151,7 @@ if st.button("🚀 INITIATE ASTRAL ROOT-CAUSE ANALYSIS", use_container_width=Tru
     
     ai_decision = json.loads(response.choices[0].message.content)
     
-    # --- SAVE TO MEMORY INSTEAD OF JUST DRAWING IT ---
+    # Save to session memory
     st.session_state.ai_data = {
         "target_service": ai_decision["service_name"],
         "allocated": float(ai_decision["allocated_gb"]),
@@ -140,7 +159,7 @@ if st.button("🚀 INITIATE ASTRAL ROOT-CAUSE ANALYSIS", use_container_width=Tru
         "root_cause": ai_decision["root_cause"],
         "cost_per_hour": cost_per_hour
     }
-    st.session_state.scan_complete = True # Tell the app the scan is done
+    st.session_state.scan_complete = True
     
     log_text += f"> ✅ Anomaly isolated in container: {ai_decision['service_name']}.\n"
     log_output.markdown(f'<div class="terminal-box">{log_text}</div>', unsafe_allow_html=True)
@@ -150,7 +169,6 @@ if st.button("🚀 INITIATE ASTRAL ROOT-CAUSE ANALYSIS", use_container_width=Tru
 # --- OUTSIDE THE BUTTON: DRAW DASHBOARD IF MEMORY EXISTS ---
 if st.session_state.scan_complete:
     
-    # Retrieve our saved data
     d = st.session_state.ai_data
     wasted_gb = d["allocated"] - d["used"]
     monthly_cost_total = d["allocated"] * d["cost_per_hour"] * 24 * 30
@@ -173,6 +191,8 @@ if st.session_state.scan_complete:
     st.divider()
 
     st.markdown("### 💸 Financial Audit")
+    st.success("🛡️ **Peace of Mind Guarantee:** Don't panic! You are running a local development environment, so you are not actually being charged this money. These calculations demonstrate what a company would save if this bloat was running on paid AWS/GCP cloud servers.")
+
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total Monthly Bill", f"${monthly_cost_total:,.2f}")
     col2.metric("Actual Compute Value", f"${monthly_cost_actual:,.2f}")
@@ -189,7 +209,6 @@ if st.session_state.scan_complete:
     
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
-        # --- CLOUD UPGRADE: Use Streamlit's native Download Button ---
         filename = "remediation_payment-gateway.yaml"
         
         st.download_button(
@@ -200,7 +219,6 @@ if st.session_state.scan_complete:
             use_container_width=True
         )
         
-        # --- NEW: QUICK EXECUTION GUIDE ---
         st.markdown("### 🏃‍♂️ Next Steps: Apply to Local Cluster")
         st.info("Open your terminal where this file was downloaded and run:")
         st.code(f"kubectl apply -f {filename}\nkubectl get pods -w", language="bash")
@@ -208,4 +226,4 @@ if st.session_state.scan_complete:
     with col_btn2:
         if st.button("❌ Quarantine Recommendation", use_container_width=True):
             st.info("Agent action overridden. Recommendation quarantined for manual review.")
-            st.session_state.scan_complete = False # Clears the dashboard
+            st.session_state.scan_complete = False
