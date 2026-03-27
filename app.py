@@ -102,7 +102,12 @@ if st.button("🚀 INITIATE ASTRAL ROOT-CAUSE ANALYSIS", use_container_width=Tru
         
     log_output.markdown(f'<div class="terminal-box">{log_text}</div>', unsafe_allow_html=True)
 
-    cost_per_hour = data["pricing_model"]["memory_per_gb_hour"]
+    # --- SAFE DATA EXTRACTION ---
+# Check if the uploaded JSON has pricing info. If not, fallback to a standard AWS/GCP default rate.
+    if "pricing_model" in data and "memory_per_gb_hour" in data["pricing_model"]:
+        cost_per_hour = data["pricing_model"]["memory_per_gb_hour"]
+    else:
+        cost_per_hour = 0.043  # Default industry standard rate if missing
 
     prompt = f"""
     You are Astral, an autonomous FinOps Agent analyzing Kubernetes containers. Review this JSON telemetry: {json.dumps(data)}
