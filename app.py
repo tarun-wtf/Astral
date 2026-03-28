@@ -170,13 +170,13 @@ if st.button("🚀 INITIATE ASTRAL ROOT-CAUSE ANALYSIS", use_container_width=Tru
 
     prompt = f"""
     You are Astral, an autonomous FinOps Agent analyzing Kubernetes containers. Review this JSON telemetry: {json.dumps(data)}
-    Find the container service that is massively over-provisioned (allocated RAM is way higher than used RAM).
+    Analyze the allocated RAM vs used RAM.
     Respond ONLY with a valid JSON object in this exact format:
     {{
         "service_name": "Name", 
         "allocated_gb": 0.0, 
         "used_gb": 0.0,
-        "root_cause": "Write 1 sentence explaining technically why an engineer would allocate so much extra RAM to this specific container."
+        "root_cause": "If allocated is much higher than used, write 1 sentence explaining the bloat. If the numbers are close and healthy, output exactly: 'System is operating efficiently with optimized boundaries.'"
     }}
     """
     
