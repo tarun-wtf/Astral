@@ -77,6 +77,7 @@ with st.expander("🛠️ Download Local Extraction Agent", expanded=False):
 import sys
 import subprocess
 import json
+import os
 
 # Auto-install Docker library if missing
 try:
@@ -104,10 +105,14 @@ try:
         }
     }
     
-    with open("telemetry_snapshot.json", "w") as f:
+    # --- THE IDIOT-PROOF FIX: FORCE SAVE LOCATION ---
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, "telemetry_snapshot.json")
+    
+    with open(file_path, "w") as f:
         json.dump(telemetry, f, indent=4)
         
-    print("🎯 EXTRACTION COMPLETE: 'telemetry_snapshot.json' has been generated in this folder.")
+    print(f"🎯 EXTRACTION COMPLETE: Saved exactly to -> {file_path}")
     print("📥 Please drag and drop this file into the Astral Web Dashboard.")
 
 except Exception as e:
