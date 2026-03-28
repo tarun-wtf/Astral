@@ -166,7 +166,7 @@ if st.button("🚀 INITIATE ASTRAL ROOT-CAUSE ANALYSIS", use_container_width=Tru
     if "pricing_model" in data and "memory_per_gb_hour_inr" in data["pricing_model"]:
         cost_per_hour = data["pricing_model"]["memory_per_gb_hour_inr"]
     else:
-        cost_per_hour = 3.57  # Default AWS Mumbai Region rate (₹3.57 per GB/hr)
+        cost_per_hour = 0.004  # Default AWS Mumbai Region rate (₹3.57 per GB/hr)
 
     prompt = f"""
     You are Astral, an autonomous FinOps Agent analyzing Kubernetes containers. Review this JSON telemetry: {json.dumps(data)}
