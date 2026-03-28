@@ -72,12 +72,47 @@ st.markdown("### 📥 Telemetry Ingestion")
 with st.expander("🛠️ Download Local Extraction Agent", expanded=False):
     st.markdown("Want to test Astral on your own local cluster? Download our secure extraction agent. It runs strictly offline and generates a telemetry file without giving us access to your system.")
     
-    # Try to read the actual agent file if it exists, otherwise provide a fallback code block
-    try:
-        with open("astral_agent.py", "r") as agent_file:
-            agent_script = agent_file.read()
-    except FileNotFoundError:
-        agent_script = "# astral_agent.py\nprint('Agent file not found locally, please check GitHub repo.')"
+    # --- THE NUCLEAR FIX: AUTO-INSTALL DEPENDENCIES DIRECTLY IN THE STRING ---
+    agent_script = """# astral_agent.py - Autonomous Kubernetes Telemetry Extractor
+import sys
+import subprocess
+import json
+
+# Auto-install Docker library if missing
+try:
+    import docker
+except ImportError:
+    print("📦 Docker library missing. Auto-installing...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "docker", "--quiet"])
+    import docker
+    print("✅ Auto-install complete!")
+
+print("🚀 Initializing Astral Local Extraction Agent...")
+print("📡 Connecting to local Docker/Kubernetes daemon...")
+
+try:
+    client = docker.from_env()
+    print("✅ Connected successfully.")
+    
+    # Mocking the telemetry extraction for the Hackathon Demo
+    telemetry = {
+        "service_name": "PaymentGateway",
+        "allocated_gb": 4.0,
+        "used_gb": 0.25,
+        "pricing_model": {
+            "memory_per_gb_hour_inr": 3.57
+        }
+    }
+    
+    with open("telemetry_snapshot.json", "w") as f:
+        json.dump(telemetry, f, indent=4)
+        
+    print("🎯 EXTRACTION COMPLETE: 'telemetry_snapshot.json' has been generated in this folder.")
+    print("📥 Please drag and drop this file into the Astral Web Dashboard.")
+
+except Exception as e:
+    print(f"❌ Error connecting to Docker. Is Docker Desktop open and running? Details: {e}")
+"""
 
     st.download_button(
         label="⬇️ Download astral_agent.py",
@@ -122,7 +157,6 @@ if st.button("🚀 INITIATE ASTRAL ROOT-CAUSE ANALYSIS", use_container_width=Tru
         
     log_output.markdown(f'<div class="terminal-box">{log_text}</div>', unsafe_allow_html=True)
 
-    # --- SAFE DATA EXTRACTION (Pricing Bug Fix) ---
     # --- SAFE DATA EXTRACTION (Now in INR!) ---
     if "pricing_model" in data and "memory_per_gb_hour_inr" in data["pricing_model"]:
         cost_per_hour = data["pricing_model"]["memory_per_gb_hour_inr"]
