@@ -123,10 +123,11 @@ if st.button("🚀 INITIATE ASTRAL ROOT-CAUSE ANALYSIS", use_container_width=Tru
     log_output.markdown(f'<div class="terminal-box">{log_text}</div>', unsafe_allow_html=True)
 
     # --- SAFE DATA EXTRACTION (Pricing Bug Fix) ---
-    if "pricing_model" in data and "memory_per_gb_hour" in data["pricing_model"]:
-        cost_per_hour = data["pricing_model"]["memory_per_gb_hour"]
+    # --- SAFE DATA EXTRACTION (Now in INR!) ---
+    if "pricing_model" in data and "memory_per_gb_hour_inr" in data["pricing_model"]:
+        cost_per_hour = data["pricing_model"]["memory_per_gb_hour_inr"]
     else:
-        cost_per_hour = 0.043  # Default AWS/GCP rate
+        cost_per_hour = 3.57  # Default AWS Mumbai Region rate (₹3.57 per GB/hr)
 
     prompt = f"""
     You are Astral, an autonomous FinOps Agent analyzing Kubernetes containers. Review this JSON telemetry: {json.dumps(data)}
@@ -190,14 +191,14 @@ if st.session_state.scan_complete:
 
     st.divider()
 
-    st.markdown("### 💸 Financial Audit")
-    st.success("🛡️ **Peace of Mind Guarantee:** Don't panic! You are running a local development environment, so you are not actually being charged this money. These calculations demonstrate what a company would save if this bloat was running on paid AWS/GCP cloud servers.")
+    st.markdown("### 💸 Financial Audit (INR)")
+    st.success("🛡️ **Peace of Mind Guarantee:** Don't panic! You are running a local development environment, so you are not actually being charged. These calculations demonstrate what a company would save if this bloat was running on paid AWS Mumbai cloud servers.")
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Monthly Bill", f"${monthly_cost_total:,.2f}")
-    col2.metric("Actual Compute Value", f"${monthly_cost_actual:,.2f}")
-    col3.metric("Monthly Leakage", f"${monthly_wasted:,.2f}", delta=f"-${monthly_wasted:,.2f}", delta_color="inverse")
-    col4.metric("Projected Annual Recovery", f"${annual_saved:,.2f}", delta="Action Required", delta_color="normal")
+    col1.metric("Total Monthly Bill", f"₹{monthly_cost_total:,.2f}")
+    col2.metric("Actual Compute Value", f"₹{monthly_cost_actual:,.2f}")
+    col3.metric("Monthly Leakage", f"₹{monthly_wasted:,.2f}", delta=f"-₹{monthly_wasted:,.2f}", delta_color="inverse")
+    col4.metric("Projected Annual Recovery", f"₹{annual_saved:,.2f}", delta="Action Required", delta_color="normal")
     
     st.divider()
     
